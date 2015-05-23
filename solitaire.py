@@ -27,8 +27,7 @@ class Solitaire:
         self.draw = [] # To begin, no cards are face up
         self.stacks = [["ZZ"], ["ZZ"], ["ZZ"], ["ZZ"]] # empty stacks
         self.hint = [] # No hint to start
-        # self.prevhint = []
-        self.moves = [] # boolean representing possibility of valid moves for every draw
+        self.moves = [] # list of booleans telling if the draw holds valid moves
 
         # Deal a new game
         for i in range(7):
@@ -39,8 +38,11 @@ class Solitaire:
     # Prints board layout in traditional Klondike style
     def printboard(self):
         # Top row: Draw cards and accumulation piles
+        sys.stdout.write("\n")
+        print "          DC   A1 A2 A3 A4"
+        print "          \/"
         if len(self.deck.cards) > 0:
-            sys.stdout.write("\n[.]") # cards remain
+            sys.stdout.write("[.]") # cards remain
         else:
             sys.stdout.write("[ ]") # deck is empty
         sys.stdout.write(" ")
@@ -263,9 +265,7 @@ class Solitaire:
             return False
 
         # Regenerate possible moves and hint
-        # self.moves.append(False) # Hacky way of denoting a real move
         self.check_possible_moves()
-        # print self.moves
         return True
 
     # Return whether or not the game is completely finished
@@ -324,32 +324,13 @@ class Solitaire:
 
     # Updates list of hints, previous hint, and checks for circularity
     def update_hints(self, newhint):
-        # if self.hint != []: self.prevhint = self.hint[-1]
         self.hint = newhint
         self.moves.append(True)
 
-
     # Check to see if there were no possible moves for every deck state
     def is_over(self):
-        # num_cards = len(self.deck.cards) + len(self.draw)
-        # if num_cards > 0:
         return all(x == False for x in self.moves)
-            # Stuck in a circular state
 
-            # Check for circularity
-            
-        #     iterations = num_cards / 3
-        #     print(num_cards, iterations)
-
-        #     if len(self.hint) >= iterations and all(x == True for x in self.moves):
-        #         latest = self.hint[-1]
-        #         for x in range(-1, ((iterations - 1) * -2), -2):
-        #             print x
-        #             if self.hint[(-x) + (2 * x)] != latest:
-        #                 return False
-        #         return True
-        #     return False
-        # return False
 
     # Checks if game is winnable (deck is empty and no cards are left unturned)
     def is_winnable(self):
@@ -362,7 +343,6 @@ class Solitaire:
 
     # Prints most recent possible move to screen
     def show_hint(self):
-        print self.hint
         if len(self.hint) == 0: 
             print "No hint available! Try drawing more cards."
         else: sys.stdout.write("Hint: " + self.hint[0] + " --> " + 
