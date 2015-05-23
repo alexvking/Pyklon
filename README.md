@@ -2,6 +2,8 @@ Pyklon: Full-Featured Klondike Solitaire in Python
 --------------------------------------------------
 By Alex King
 
+<img src="screen.png">
+
 SUMMARY
 -------
 Pyklon is a full-featured Klondike Solitaire engine written in Python. It is 
