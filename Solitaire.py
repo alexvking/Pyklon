@@ -13,7 +13,7 @@ import copy
 #  face up
 # draw: A list tracking all cards that are face up in the draw pile.
 # stacks: A list of lists tracking cards in the accumulation piles.
-# hints: A list of pairs of sources and destinations
+# hint: Either the empty list or a source and a destination
 # moves: An accumulating list of booleans that tracks whether or not there is
 #  a legal move on each draw of the deck. If all False when the deck is emptied,
 #  the game is over.
@@ -24,6 +24,8 @@ import copy
 #  the move is added to a dictionary.
 
 class Solitaire:
+
+    # __init__ : void
     # Initializes all member variables and sets the game board
     def __init__(self):
         self.deck = Deck() # grab a shuffled deck of cards
@@ -36,7 +38,7 @@ class Solitaire:
         self.moves = [] # list of booleans telling if the draw holds valid moves
         self.lateral_list = {}
         self.prev = copy.deepcopy(self)
-        # newobj = copy.deepcopy(oldobj) # deep (recursive) copy
+        self.can_undo = False
 
         # Deal a new game
         for i in range(7):
@@ -44,6 +46,7 @@ class Solitaire:
             for j in range (i + 1):
                 self.columns[i].append(self.deck.draw())
 
+    # printboard : void
     # Prints board layout in traditional Klondike style
     def printboard(self):
         # Top row: Draw cards and accumulation piles
@@ -100,6 +103,7 @@ class Solitaire:
             sys.stdout.write("\n")
         sys.stdout.write("\n")
 
+    # can_stack_up : card card -> boolean
     # Returns whether c1 can be placed on top of c2 in an accumulation pile
     def can_stack_up(self, c1, c2):
         ranks = "A23456789TJQK"
@@ -112,6 +116,7 @@ class Solitaire:
         else:
             return c1[1] == c2[1] and order in ranks
 
+    # can_stack_down : card card -> boolean
     # Returns whether a card can be added to the bottom of a column
     def can_stack_down(self, c1, c2):
         ranks = "A23456789TJQK"
@@ -127,23 +132,25 @@ class Solitaire:
                  c1[1] == "H" and (c2[1] == "S" or c2[1] == "C")) and 
                 order in ranks)
 
+    # draw_cards : bool
     # Draw cards from deck and hold face up as long as there are cards left
+    # returns True if the move is successful, False if the game is over
     def draw_cards(self):
         # if deck is empty, the face-up stack becomes the deck again
         length = len(self.deck.cards)
         if length == 0:
             if self.is_over():
                 print "There are no more moves. Thanks for playing!"
-                exit(1)
+                return False
             elif self.is_winnable():
                 print "The game is winnable! Nice going!"
-                return
+                return True
             else:
                 self.moves = []
                 self.deck.cards = list(reversed(self.draw)) # turn over the deck!
                 self.draw = []
                 self.hint = []
-                return
+                return True
         else:
             # Draw up to three new cards, depending on how many are left
             if length >= 3:
@@ -155,8 +162,9 @@ class Solitaire:
 
         # Detect if new board state has valid moves; update hint
         self.check_possible_moves()
-        return
+        return True
 
+    # move_cards : move move boolean -> boolean
     # Parses user input, and if legal, moves card(s) from m1 to m2
     # Argue with True to execute moves, argue with False to return move validity
     def move_cards(self, m1, m2, to_be_run):
@@ -200,6 +208,10 @@ class Solitaire:
                 if to_be_run: print "That's not a valid coordinate. Try again."
                 return False
             if (len(self.columns[c2_col]) - c2_row) > self.faceup[c2_col]:
+                if to_be_run: print "That's not a valid coordinate. Try again."
+                return False
+            # Ensure destination is the bottom of the stack
+            if c2_row != len(self.columns[c2_col]) - 1:
                 if to_be_run: print "That's not a valid coordinate. Try again."
                 return False
             dest = "col"
@@ -285,14 +297,17 @@ class Solitaire:
 
         # Regenerate possible moves and hint
         self.check_possible_moves()
+        # The move was legal and was executed successfully
         return True
 
+    # is_won : boolean
     # Return whether or not the game is completely finished
     def is_won(self):
         for stack in self.stacks:
             if len(stack) != 14: return False
         return True
 
+    # check_possible_moves : void
     # Update move possibility list for current game state
     def check_possible_moves(self):
 
@@ -302,7 +317,7 @@ class Solitaire:
             dest = str(col) + row
             source = "DC"
             if self.move_cards(source, dest, False):
-                self.update_hints([source, dest])
+                self.update_hint([source, dest])
                 return
 
         # Try moving the draw card to every stack
@@ -310,7 +325,7 @@ class Solitaire:
                 source = "DC"
                 dest = "A" + str(stack)
                 if self.move_cards(source, dest, False):
-                    self.update_hints([source, dest])
+                    self.update_hint([source, dest])
                     return
 
         # Try moving every top card to every stack
@@ -319,7 +334,7 @@ class Solitaire:
             for stack in range(1, 5):
                 dest = "A" + str(stack)
                 if self.move_cards(source, dest, False):
-                    self.update_hints([source, dest])
+                    self.update_hint([source, dest])
                     return
 
         # Try moving every column to every other column
@@ -330,44 +345,44 @@ class Solitaire:
                     source = str(col) + str(row)
                     dest = (str(destcol) + 
                             str(len(self.columns[destcol - 1])))
-                    # dest = str(col) + str(row)
                     if source[0] == dest[0]: continue # Ignore same column moves
                     if self.move_cards(source, dest, False):
-                        # print(source, dest)
                         # ensure the move is unique before adding it
                         move = source + " " + dest
-
                         # Don't bother with moving K-anchored stacks col->col
                         if not (source[1:] == "1" and dest[1:] == "1"):
                             if not self.lateral_list.has_key(move):
-                                self.update_hints([source, dest])
+                                self.update_hint([source, dest])
                                 return
 
         # No new move/hint was found
         self.hint = []
         self.moves.append(False)
 
-    # Updates list of hints, previous hint, and checks for circularity
-    def update_hints(self, newhint):
+    # update_hint : hint -> void
+    # Overwrites hint and adds a True (playable) state to the move list
+    def update_hint(self, newhint):
         self.hint = newhint
         self.moves.append(True)
 
+    # is_over : boolean
     # Check to see if there were no possible moves for every deck state
     def is_over(self):
         if not self.is_winnable():
             return all(x == False for x in self.moves)
         return False
 
-
+    # is_winnable : boolean
     # Checks if game is winnable (deck is empty and no cards are left unturned)
     def is_winnable(self):
         if self.deck.cards != []: return False
         if self.draw       != []: return False
-        # Check that faceup count matches length - 1
+        # Check that all cards are face up
         for x in range(7):
             if self.faceup[x] < (len(self.columns[x]) - 1): return False
         return True
 
+    # show_hint : void
     # Prints most recent possible move to screen
     def show_hint(self):
         if len(self.hint) == 0: 
@@ -375,8 +390,12 @@ class Solitaire:
         else: sys.stdout.write("Hint: " + self.hint[0] + " --> " + 
                                self.hint[1] + "\n")
 
+    # undo : void
     # Replaces object data with that of the previous game state
     def undo(self):
+        if not self.can_undo:
+            print "Sorry, you can only undo the most recent move."
+            return
         self.deck = self.prev.deck
         self.columns = self.prev.columns
         self.faceup = self.prev.faceup
@@ -386,12 +405,27 @@ class Solitaire:
         self.move = self.prev.moves
         self.lateral_list = self.prev.lateral_list
         print "Undid previous move."
+        self.can_undo = False
 
+    # backup : void
     # Backs up current game state for undo feature
     def backup(self):
         self.prev = copy.deepcopy(self)
+        self.can_undo = True
 
-    # Input loop to play game
+    # parse_move : input -> bool
+    # Parses user input and executes command
+    def parse_move(self, move):
+        if len(move) != 2:
+            print "That's not a valid move. Try again."
+            return False
+        else:
+            self.backup()
+            self.move_cards(move[0], move[1], True)
+
+
+    # play : bool
+    # Input loop to play game, returns whether or not the game was won
     def play(self):
         sys.stdout.write("\n\n\n")
         print "Welcome to Solitaire!"
@@ -407,11 +441,12 @@ class Solitaire:
         while True:
             self.printboard()
             ans = raw_input("Enter a move: ")
-            if   ans in ["Q", "q", "quit", "exit"]: 
+            if ans in ["Q", "q", "quit", "exit"]: 
                 exit(1)
             elif ans in ["d", "D", "draw", "Draw", "DRAW"]: 
                 self.backup()
-                self.draw_cards()
+                if not self.draw_cards():
+                    return False
             elif ans in ["hint", "Hint", "HINT", "h", "H"]:
                 self.show_hint()
             elif ans in ["u", "undo", "UNDO", "Undo"]:
@@ -419,17 +454,10 @@ class Solitaire:
             elif ans in ["help", "Help", "HELP"]:
                 self.play()
             else:
-                move = ans.split()
-                if len(move) != 2:
-                    print "That's not a valid move. Try again."
-                    continue
-                else:
-                    self.backup()
-                    self.move_cards(move[0], move[1], True)
-                    if self.is_won():
-                        self.printboard()
-                        print "You've won! Thanks for playing!"
-                        exit(1)
-
+                self.parse_move(ans.split())
+                if self.is_won():
+                    self.printboard()
+                    print "You've won! Thanks for playing!"
+                    return True
         print "Thanks for playing!"
         return
