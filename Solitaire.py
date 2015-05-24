@@ -3,6 +3,7 @@
 
 from Deck import Deck
 import sys
+import copy
 
 # The Solitaire class holds several structures to track card positions
 
@@ -34,10 +35,12 @@ class Solitaire:
         self.hint = [] # No hint to start
         self.moves = [] # list of booleans telling if the draw holds valid moves
         self.lateral_list = {}
+        self.prev = copy.deepcopy(self)
+        # newobj = copy.deepcopy(oldobj) # deep (recursive) copy
 
         # Deal a new game
         for i in range(7):
-            self.columns.append([])
+            # self.columns.append([])
             for j in range (i + 1):
                 self.columns[i].append(self.deck.draw())
 
@@ -132,12 +135,15 @@ class Solitaire:
             if self.is_over():
                 print "There are no more moves. Thanks for playing!"
                 exit(1)
+            elif self.is_winnable():
+                print "The game is winnable! Nice going!"
+                return
             else:
                 self.moves = []
-            self.deck.cards = list(reversed(self.draw)) # turn over the deck!
-            self.draw = []
-            self.hint = []
-            return
+                self.deck.cards = list(reversed(self.draw)) # turn over the deck!
+                self.draw = []
+                self.hint = []
+                return
         else:
             # Draw up to three new cards, depending on how many are left
             if length >= 3:
@@ -274,6 +280,9 @@ class Solitaire:
             print "You can't move from there to there. Try again."
             return False
 
+        if self.is_winnable():
+            print "The game is winnable! Nice going!"
+
         # Regenerate possible moves and hint
         self.check_possible_moves()
         return True
@@ -327,9 +336,12 @@ class Solitaire:
                         # print(source, dest)
                         # ensure the move is unique before adding it
                         move = source + " " + dest
-                        if not self.lateral_list.has_key(move):
-                            self.update_hints([source, dest])
-                            return
+
+                        # Don't bother with moving K-anchored stacks col->col
+                        if not (source[1:] == "1" and dest[1:] == "1"):
+                            if not self.lateral_list.has_key(move):
+                                self.update_hints([source, dest])
+                                return
 
         # No new move/hint was found
         self.hint = []
@@ -342,7 +354,9 @@ class Solitaire:
 
     # Check to see if there were no possible moves for every deck state
     def is_over(self):
-        return all(x == False for x in self.moves)
+        if not self.is_winnable():
+            return all(x == False for x in self.moves)
+        return False
 
 
     # Checks if game is winnable (deck is empty and no cards are left unturned)
@@ -351,7 +365,7 @@ class Solitaire:
         if self.draw       != []: return False
         # Check that faceup count matches length - 1
         for x in range(7):
-            if self.faceup[x] != (len(self.columns[x]) - 1): return False
+            if self.faceup[x] < (len(self.columns[x]) - 1): return False
         return True
 
     # Prints most recent possible move to screen
@@ -360,6 +374,22 @@ class Solitaire:
             print "No hint available! Try drawing more cards."
         else: sys.stdout.write("Hint: " + self.hint[0] + " --> " + 
                                self.hint[1] + "\n")
+
+    # Replaces object data with that of the previous game state
+    def undo(self):
+        self.deck = self.prev.deck
+        self.columns = self.prev.columns
+        self.faceup = self.prev.faceup
+        self.draw = self.prev.draw
+        self.stacks = self.prev.stacks
+        self.hint = self.prev.hint
+        self.move = self.prev.moves
+        self.lateral_list = self.prev.lateral_list
+        print "Undid previous move."
+
+    # Backs up current game state for undo feature
+    def backup(self):
+        self.prev = copy.deepcopy(self)
 
     # Input loop to play game
     def play(self):
@@ -371,6 +401,7 @@ class Solitaire:
         print "To draw new cards from the deck, type d or D."
         print "To access the top card of the draw pile, address as DC."
         print 'Some example moves: "11 22", "DC 54", "32 A3", "719 111".'
+        print "You can undo your previous move by typing 'undo'."
         print "You can type 'hint' or 'h' if you want to see a possible move." 
         print 'Type "help" if you want to see this again. Have fun!\n\n'
         while True:
@@ -379,9 +410,12 @@ class Solitaire:
             if   ans in ["Q", "q", "quit", "exit"]: 
                 exit(1)
             elif ans in ["d", "D", "draw", "Draw", "DRAW"]: 
+                self.backup()
                 self.draw_cards()
             elif ans in ["hint", "Hint", "HINT", "h", "H"]:
                 self.show_hint()
+            elif ans in ["u", "undo", "UNDO", "Undo"]:
+                self.undo()
             elif ans in ["help", "Help", "HELP"]:
                 self.play()
             else:
@@ -390,12 +424,12 @@ class Solitaire:
                     print "That's not a valid move. Try again."
                     continue
                 else:
+                    self.backup()
                     self.move_cards(move[0], move[1], True)
                     if self.is_won():
+                        self.printboard()
                         print "You've won! Thanks for playing!"
                         exit(1)
-                    elif self.is_winnable():
-                        print "The game is winnable! Nice going!"
 
         print "Thanks for playing!"
         return
