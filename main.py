@@ -1,4 +1,4 @@
-from solitaire import Solitaire 
+from Solitaire import Solitaire 
 import sys
 
 sol = Solitaire()
