@@ -1,5 +1,5 @@
 # Alex King
-# solitaire.py
+# Solitaire.py
 
 from Deck import Deck
 import sys
@@ -17,6 +17,11 @@ import sys
 #  a legal move on each draw of the deck. If all False when the deck is emptied,
 #  the game is over.
 
+# lateral_list: Every move from column to column should be productive; the same
+#  move cannot happen twice and move the player closer towards a solution.
+#  therefore, any time a lateral move is suggested, or a lateral move is made,
+#  the move is added to a dictionary.
+
 class Solitaire:
     # Initializes all member variables and sets the game board
     def __init__(self):
@@ -28,6 +33,7 @@ class Solitaire:
         self.stacks = [["ZZ"], ["ZZ"], ["ZZ"], ["ZZ"]] # empty stacks
         self.hint = [] # No hint to start
         self.moves = [] # list of booleans telling if the draw holds valid moves
+        self.lateral_list = {}
 
         # Deal a new game
         for i in range(7):
@@ -109,7 +115,6 @@ class Solitaire:
         order = c1[0] + c2[0] # e.g. "28", "JQ", "43"
 
         if c2[0] == "Z" and c1[0] == "K": 
-            print "you found a Z"
             return True # base case
 
         # Check order and suit
@@ -206,6 +211,11 @@ class Solitaire:
         if source == "col" and dest == "col":
             if self.can_stack_down(c1, c2):
                 if not to_be_run: return True
+
+                # Add this move to the lateral move list
+                move = m1 + " " + m2
+                self.lateral_list[move] = 1
+
                 # Find how many cards will be moved
                 num_cards = len(self.columns[c1_col]) - c1_row
                 moving = []
@@ -271,7 +281,7 @@ class Solitaire:
     # Return whether or not the game is completely finished
     def is_won(self):
         for stack in self.stacks:
-            if len(stack) != 13: return False
+            if len(stack) != 14: return False
         return True
 
     # Update move possibility list for current game state
@@ -315,8 +325,11 @@ class Solitaire:
                     if source[0] == dest[0]: continue # Ignore same column moves
                     if self.move_cards(source, dest, False):
                         # print(source, dest)
-                        self.update_hints([source, dest])
-                        return
+                        # ensure the move is unique before adding it
+                        move = source + " " + dest
+                        if not self.lateral_list.has_key(move):
+                            self.update_hints([source, dest])
+                            return
 
         # No new move/hint was found
         self.hint = []
@@ -346,7 +359,7 @@ class Solitaire:
         if len(self.hint) == 0: 
             print "No hint available! Try drawing more cards."
         else: sys.stdout.write("Hint: " + self.hint[0] + " --> " + 
-                                   self.hint[1] + "\n")
+                               self.hint[1] + "\n")
 
     # Input loop to play game
     def play(self):
