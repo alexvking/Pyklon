@@ -1,5 +1,4 @@
-from Solitaire import Solitaire 
-import sys
+from Solitaire import Solitaire
 
 sol = Solitaire()
 sol.play()

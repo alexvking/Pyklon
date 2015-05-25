@@ -39,6 +39,7 @@ class Solitaire:
         self.lateral_list = {}
         self.prev = copy.deepcopy(self)
         self.can_undo = False
+        self.winnable_is_known = False
 
         # Deal a new game
         for i in range(7):
@@ -157,7 +158,7 @@ class Solitaire:
                 print "There are no more moves. Thanks for playing!"
                 return False
             elif self.is_winnable():
-                print "The game is winnable! Nice going!"
+                print "The game is winnable! Nice going! Type 's' to solve."
                 return True
             else:
                 self.moves = []
@@ -261,6 +262,10 @@ class Solitaire:
         else:
             print "You can't move from there to there. Try again."
             return False
+
+        if self.is_winnable() and self.winnable_is_known == False:
+            if to_be_run: print "The game is winnable! Nice going!"
+            self.winnable_is_known = True
 
         return result
 
@@ -430,6 +435,36 @@ class Solitaire:
             if self.faceup[x] < (len(self.columns[x]) - 1): return False
         return True
 
+    # solve : void
+    # Automatically finishes a winnable game
+    def solve(self):
+        if self.is_winnable():
+            while not self.is_won():
+                self.check_possible_moves()
+                self.parse_move(self.hint[0], self.hint[1], True)
+            self.printboard()
+            print "You've won! Thanks for playing!"
+            exit(1)
+        else:
+            print "Sorry, the game isn't solvable yet!"
+
+    # auto_run : bool
+    # Automatically plays the game while possible
+    def auto_run(self):
+        while not self.is_won() or self.is_over():
+            self.check_possible_moves()
+            while self.hint == []:
+                self.draw_cards()
+                if self.is_over():
+                    print "Automated play ended in failure."
+                    return False
+            self.parse_move(self.hint[0], self.hint[1], True)
+            self.printboard()
+        if self.is_won():
+            self.printboard()
+            print "Automated play ended in success!"
+            return True
+
     # show_hint : void
     # Prints most recent possible move to screen
     def show_hint(self):
@@ -486,10 +521,19 @@ class Solitaire:
                'Type "hint" or "h" to see a possible move, which is helpful when stuck.\n'
                + 'Type "help" if you want to see this again or "q" to quit. Have fun!\n\n')
 
+
+    def play_auto(self):
+        self.check_possible_moves()
+        return self.auto_run()
+
     # play : bool
     # Input loop to play game, returns whether or not the game was won
     def play(self):
         self.print_intro()
+
+        # Generate initial hint
+        self.check_possible_moves()
+
         while True:
             self.printboard()
             ans = raw_input("Enter a move: ")
@@ -503,6 +547,11 @@ class Solitaire:
                 self.show_hint()
             elif ans in ["u", "undo", "UNDO", "Undo"]:
                 self.undo()
+            elif ans in ["s", "solve", "S", "SOLVE"]:
+                self.solve()
+            elif ans in ["autoplay"]:
+                result = self.auto_run()
+                exit(1)
             elif ans in ["help", "Help", "HELP"]:
                 self.print_intro()
             else:

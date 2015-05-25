@@ -1,5 +1,5 @@
-Pyklon: Full-Featured Klondike Solitaire in Python
---------------------------------------------------
+Pyklon: Full-Featured Command Line Klondike Solitaire
+-----------------------------------------------------
 By Alex King
 
 <img src="screen.png">
@@ -10,10 +10,9 @@ Pyklon is a full-featured Klondike Solitaire engine written in Python. It is
 completely playable (and kind of fun!) in the terminal, but was designed as a 
 backend that could power a frontend UI.
 
-Pyklon features <b>undo</b>, a <b>hint engine</b>, and robust <b>endgame detection</b>. 
-This means that it
-can detect games with no possible moves as well as games with possible but
-nonprogressive moves.
+Pyklon features <b>undo</b>, a <b>hint engine</b>, robust <b>endgame detection</b>,
+<b>automatic solving for winnable games</b>, and even an experimental <b>autoplay</b>
+feature.
 
 Usage and Tips
 --------------
@@ -54,9 +53,14 @@ improvement for usability.
 Right now, Pyklon does not store any statistics about played games. A future 
 update could track wins, losses, and the best time to finish.
 
+Scoring (Standard Windows) may be added in a future version.
+
 
 Version History and Release Notes
 ---------------------------------
+
+5/25/15 VERSION 1.3
+- Added solve functionality
 
 5/23/15 VERSION 1.2
   - Added undo support
