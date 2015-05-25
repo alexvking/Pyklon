@@ -276,9 +276,11 @@ class Solitaire:
         if self.can_stack_down(c1, c2):
             if not to_be_run: return True
 
-            # Add this move to the lateral move list
+            # Add this move, and its reverse, to the lateral move list
             move = m1 + " " + m2
+            rev  = m2 + " " + m1
             self.lateral_list[move] = 1
+            self.lateral_list[rev]  = 1
 
             # Find how many cards will be moved
             num_cards = len(self.columns[c1_col]) - c1_row
