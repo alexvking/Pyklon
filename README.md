@@ -47,6 +47,9 @@ moves, make sure to request a few hints and do the moves that it suggests.
 Known Issues and Planned Improvements
 -------------------------------------
 
+Pyklon highlights cards with UNIX-compatible unicode characters. If you're on 
+Windows, the game won't look good. Just use a Unix terminal emulator like cmder.
+
 As of Version 1.1, Pyklon now detects "futile" games, which is a tremendous 
 improvement for usability.
 
