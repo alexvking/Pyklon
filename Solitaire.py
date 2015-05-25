@@ -54,15 +54,15 @@ class Solitaire:
         print "          DC   A1 A2 A3 A4"
         print "          \/"
         if len(self.deck.cards) > 0:
-            sys.stdout.write("[.]") # cards remain
+            sys.stdout.write('\033[44m' + "[.]" + '\033[0m') # cards remain
         else:
-            sys.stdout.write("[ ]") # deck is empty
+            sys.stdout.write('\033[44m' + "[ ]" + '\033[0m') # deck is empty
         sys.stdout.write(" ")
 
         # Print up to three drawn cards
         for i in range(-3, 0):
             if len(self.draw) >= (i * -1): # To print *last three* of the array
-                sys.stdout.write(self.draw[i])
+                self.print_card(self.draw[i])
             else: 
                 sys.stdout.write("  ")
             sys.stdout.write(" ")
@@ -71,7 +71,8 @@ class Solitaire:
         # Print accumulation piles
         for stack in self.stacks:
             if len(stack) > 1:
-                sys.stdout.write(stack[-1]) # show only the top card
+                self.print_card(stack[-1])
+                # sys.stdout.write(stack[-1]) # show only the top card
             else:
                 sys.stdout.write("__")
             sys.stdout.write(" ")
@@ -92,9 +93,10 @@ class Solitaire:
             for col in range(7):
                 if len(self.columns[col]) > row:
                     if (len(self.columns[col]) - (row)) <= self.faceup[col]:
-                        sys.stdout.write(self.columns[col][row])
+                        self.print_card(self.columns[col][row])
+                        # sys.stdout.write('\033[93m' + self.columns[col][row] + '\033[0m')
                     else:
-                        sys.stdout.write("[]") # face down
+                        sys.stdout.write('\033[44m' + "[]" + '\033[0m') # face down
 
                     sys.stdout.write("  ")
                 else:
@@ -102,6 +104,18 @@ class Solitaire:
             sys.stdout.write("     " + str(row)) # number each row
             sys.stdout.write("\n")
         sys.stdout.write("\n")
+
+    # print_card : card -> void
+    # Prints card with color depending on suit
+    def print_card(self, c):
+        if c[1] == "D":
+            sys.stdout.write('\033[37;41m' + c + '\033[0m')
+        elif c[1] == "H":
+            sys.stdout.write('\033[32;41m' + c + '\033[0m')
+        elif c[1] == "S":
+            sys.stdout.write('\033[36;40m' + c + '\033[0m')
+        elif c[1] == "C":
+            sys.stdout.write('\033[33;40m' + c + '\033[0m')
 
     # can_stack_up : card card -> boolean
     # Returns whether c1 can be placed on top of c2 in an accumulation pile
