@@ -6,11 +6,12 @@ By Alex King
 
 Summary
 -------
-Pyklon is a full-featured Klondike Solitaire engine written in Python. It is 
-completely playable (and kind of fun!) in the terminal, but was designed as a 
-backend that could power a frontend UI.
+Pyklon is full-featured Klondike solitaire written in Python. It is 
+completely playable (and kind of fun!) in the terminal, but it was more created
+as an engine that could eventually power a UI.
 
-Pyklon features <b>undo</b>, a <b>hint engine</b>, robust <b>endgame detection</b>,
+Pyklon has features on par with the best digital solitaire games available today. 
+It features <b>undo</b>, a <b>hint engine</b>, robust <b>endgame detection</b>,
 <b>automatic solving for winnable games</b>, and even an experimental <b>autoplay</b>
 feature.
 
@@ -30,25 +31,33 @@ The top card of the draw pile is addressed as DC.
 Some example moves are "11 22", "DC 54", "32 A3", and "719 111".
 
 Endgame detection in the game requires use of the hint system, which will suggest
-possible moves as long as they are unique.
+possible moves as long as they are unique. This detection is more powerful than
+some other digital versions of solitaire, which sometimes only detect playability
+based on cards available in the draw pile.
 
+Here's how the endgame detection improves upon that:
 Because movement between two tableaus should always either uncover a card or expose
 another, lateral movements between two tableaus are kept track of so that each
 unique lateral move will only ever be suggested once. In this way, if the game has no more
 useful moves that can uncover cards and advance the game, the hint system may 
 suggest that the player move a card stack from
-position A to position B, and then back to position A, but after that, it will
-recognize that the same should not be attempted again.
+position A to position B, but it will not recommend the reverse, and it will not
+make the same recommendation again.
 
-In short, if you want to make sure the game detects if you have no more possible
+If you want to make sure the game detects if you have no more possible
 moves, make sure to request a few hints and do the moves that it suggests.
 
+To play around with the autoplay feature, you can either type "autoplay" while
+playing, or run <code>python auto.py</code> to run a simulation of nonstop
+autoplay. Use <code>CTRL + C</code> to end the simulation and see how many games
+were won and how many were lost.
 
 Known Issues and Planned Improvements
 -------------------------------------
 
 Pyklon highlights cards with UNIX-compatible unicode characters. If you're on 
-Windows, the game won't look good. Just use a Unix terminal emulator like cmder.
+Windows, the game won't display properly. Just use a Unix terminal emulator like 
+<a href="http://gooseberrycreative.com/cmder/">cmder</a>.
 
 As of Version 1.1, Pyklon now detects "futile" games, which is a tremendous 
 improvement for usability.
@@ -56,11 +65,14 @@ improvement for usability.
 Right now, Pyklon does not store any statistics about played games. A future 
 update could track wins, losses, and the best time to finish.
 
-Scoring (Standard Windows) may be added in a future version.
-
+Scoring may be added in a future version.
 
 Version History and Release Notes
 ---------------------------------
+
+5/25/15 VERSION 1.3.1
+  - Fixed bug where bad foundation coordinates could crash the program
+  - Fixed bug where improper input still caused previous game state to be overwritten
 
 5/25/15 VERSION 1.3
 - Added solve functionality

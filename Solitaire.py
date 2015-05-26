@@ -1,5 +1,6 @@
 # Alex King
 # Solitaire.py
+# 5/22/15
 
 from Deck import Deck
 import sys
@@ -72,8 +73,7 @@ class Solitaire:
         # Print accumulation piles
         for stack in self.stacks:
             if len(stack) > 1:
-                self.print_card(stack[-1])
-                # sys.stdout.write(stack[-1]) # show only the top card
+                self.print_card(stack[-1]) # show only the top card
             else:
                 sys.stdout.write("__")
             sys.stdout.write(" ")
@@ -93,6 +93,7 @@ class Solitaire:
         for row in range(1, (max_length + 1)):
             for col in range(7):
                 if len(self.columns[col]) > row:
+                    # If the card is uncovered, print its identity
                     if (len(self.columns[col]) - (row)) <= self.faceup[col]:
                         self.print_card(self.columns[col][row])
                     else:
@@ -164,6 +165,7 @@ class Solitaire:
                 self.deck.cards = list(reversed(self.draw)) # turn over the deck!
                 self.draw = []
                 self.hint = []
+                self.check_possible_moves()
                 return True
         else:
             # Draw up to three new cards, depending on how many are left
@@ -209,6 +211,15 @@ class Solitaire:
             source = "draw"
 
         elif m1[0] == "A":
+            try:
+                if int(m1[1:]) < 1 or int(m1[1:]) > 4:
+                    if to_be_run: print ("That's not a valid coordinate." + 
+                                         "Try again.")
+                    return False
+            except ValueError:
+                if to_be_run: print ("That's not a valid coordinate." + 
+                                     " Try again.")
+                return False
             c1 = self.stacks[int(m1[1]) - 1][-1]
             c1_stack = int(m1[1]) - 1
             source = "accum"
@@ -238,6 +249,9 @@ class Solitaire:
             dest = "col"
 
         elif m2[0] == "A":
+            if int(m2[1:]) < 1 or int(m2[1:]) > 4:
+                if to_be_run: print "That's not a valid coordinate. Try again."
+                return False
             c2 = self.stacks[int(m2[1]) - 1][-1]
             c2_stack = int(m2[1]) - 1
             dest = "accum"
@@ -262,7 +276,7 @@ class Solitaire:
             print "You can't move from there to there. Try again."
             return False
 
-        if self.is_winnable() and self.winnable_is_known == False:
+        if self.is_winnable() and not self.winnable_is_known:
             if to_be_run: print "The game is winnable! Nice going!"
             self.winnable_is_known = True
 
@@ -274,6 +288,7 @@ class Solitaire:
                         c2_col, c2_row, to_be_run):
         if self.can_stack_down(c1, c2):
             if not to_be_run: return True
+            self.backup()
 
             # Add this move, and its reverse, to the lateral move list
             move = m1 + " " + m2
@@ -303,6 +318,7 @@ class Solitaire:
     def move_col_to_accum(self, c1, c2, c1_col, c2_stack, to_be_run):
         if self.can_stack_up(c1, c2):
             if not to_be_run: return True
+            self.backup()
             moving = self.columns[c1_col].pop()
             self.stacks[c2_stack].append(moving)
             self.faceup[c1_col] -= 1
@@ -318,6 +334,7 @@ class Solitaire:
     def move_draw_to_col(self, c1, c2, c2_col, to_be_run):
         if self.can_stack_down(c1, c2):
             if not to_be_run: return True
+            self.backup()
             moving = self.draw.pop()
             self.columns[c2_col].append(moving)
             self.faceup[c2_col] += 1
@@ -332,6 +349,7 @@ class Solitaire:
     def move_draw_to_accum(self, c1, c2, c2_stack, to_be_run):
         if self.can_stack_up(c1, c2):
             if not to_be_run: return True
+            self.backup()
             moving = self.draw.pop()
             self.stacks[c2_stack].append(moving)
             self.check_possible_moves()
@@ -345,6 +363,7 @@ class Solitaire:
     def move_accum_to_col(self, c1, c2, c1_stack, c2_col, to_be_run):
         if self.can_stack_down(c1, c2):
             if not to_be_run: return True
+            self.backup()
             moving = self.stacks[c1_stack].pop()
             self.columns[c2_col].append(moving)
             self.faceup[c2_col] += 1
@@ -436,7 +455,7 @@ class Solitaire:
             if self.faceup[x] < (len(self.columns[x]) - 1): return False
         return True
 
-    # solve : void
+    # solve : bool
     # Automatically finishes a winnable game
     def solve(self):
         if self.is_winnable():
@@ -445,9 +464,10 @@ class Solitaire:
                 self.parse_move(self.hint[0], self.hint[1], True)
             self.printboard()
             print "You've won! Thanks for playing!"
-            exit(1)
+            return True
         else:
             print "Sorry, the game isn't solvable yet!"
+            return False
 
     # auto_run : bool
     # Automatically plays the game while possible
@@ -504,7 +524,6 @@ class Solitaire:
             print "That's not a valid move. Try again."
             return False
         else:
-            self.backup()
             self.parse_move(move[0].upper(), move[1].upper(), True)
 
     def print_intro(self):
@@ -547,7 +566,8 @@ class Solitaire:
             elif ans in ["u", "undo", "UNDO", "Undo"]:
                 self.undo()
             elif ans in ["s", "solve", "S", "SOLVE"]:
-                self.solve()
+                if self.solve():
+                    return True
             elif ans in ["autoplay"]:
                 return self.auto_run()
             elif ans in ["help", "Help", "HELP"]:
