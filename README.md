@@ -59,13 +59,20 @@ Pyklon highlights cards with UNIX-compatible unicode characters. If you're on
 Windows, the game won't display properly. Just use a Unix terminal emulator like 
 <a href="http://gooseberrycreative.com/cmder/">cmder</a>.
 
-As of Version 1.1, Pyklon now detects "futile" games, which is a tremendous 
-improvement for usability.
+Unlimited undo would be a relatively easy feature to add, but I have not
+implemented it because I don't believe it's the way the game was meant to be played.
+
+Right now, the hint engine will suggest any valid move (according to the algorithm
+described above). It does not catch itself before recommending a move that will
+lead to an unplayable board. For example, the hint engine will require a player
+to move a stack of 5432 from one 6 to another, even if it doesn't create a new
+movement opportunity by exposing a 6. This is a small thing, but if this feature were
+added, hints would be more realistic, and endgame detection would work more quickly.
 
 Right now, Pyklon does not store any statistics about played games. A future 
 update could track wins, losses, and the best time to finish.
 
-Scoring may be added in a future version.
+Scoring may also be added in a future version.
 
 Version History and Release Notes
 ---------------------------------
