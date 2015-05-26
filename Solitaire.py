@@ -95,9 +95,8 @@ class Solitaire:
                 if len(self.columns[col]) > row:
                     if (len(self.columns[col]) - (row)) <= self.faceup[col]:
                         self.print_card(self.columns[col][row])
-                        # sys.stdout.write('\033[93m' + self.columns[col][row] + '\033[0m')
                     else:
-                        sys.stdout.write('\033[44m' + "[]" + '\033[0m') # face down
+                        sys.stdout.write('\033[44m' + "[]" + '\033[0m')
 
                     sys.stdout.write("  ")
                 else:
@@ -523,7 +522,6 @@ class Solitaire:
                'Type "hint" or "h" to see a possible move, which is helpful when stuck.\n'
                + 'Type "help" if you want to see this again or "q" to quit. Have fun!\n\n')
 
-
     def play_auto(self):
         self.check_possible_moves()
         return self.auto_run()
@@ -542,7 +540,6 @@ class Solitaire:
             if ans in ["Q", "q", "quit", "exit"]: 
                 exit(1)
             elif ans in ["d", "D", "draw", "Draw", "DRAW"]: 
-                self.backup()
                 if not self.draw_cards():
                     return False
             elif ans in ["hint", "Hint", "HINT", "h", "H"]:
@@ -552,8 +549,7 @@ class Solitaire:
             elif ans in ["s", "solve", "S", "SOLVE"]:
                 self.solve()
             elif ans in ["autoplay"]:
-                result = self.auto_run()
-                exit(1)
+                return self.auto_run()
             elif ans in ["help", "Help", "HELP"]:
                 self.print_intro()
             else:
