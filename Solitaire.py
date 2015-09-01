@@ -44,7 +44,6 @@ class Solitaire:
 
         # Deal a new game
         for i in range(7):
-            # self.columns.append([])
             for j in range (i + 1):
                 self.columns[i].append(self.deck.draw())
 

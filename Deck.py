@@ -2,11 +2,9 @@
 # Deck.py - Deck of cards in Python
 # 5/22/15
 
-# Purpose of this file: Create a deck of cards in a random shuffled order
-
 import random
 
-# A Deck represents a stack of 52 face down standard playing cards.
+# A Deck represents a stack of 52 face down standard playing cards
 
 class Deck:
         def __init__(self):
