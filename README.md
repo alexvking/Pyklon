@@ -2,7 +2,7 @@ Pyklon: Full-Featured Command Line Klondike Solitaire
 -----------------------------------------------------
 By Alex King
 
-<img src="screen.png">
+<img src="demo.gif">
 
 Summary
 -------
